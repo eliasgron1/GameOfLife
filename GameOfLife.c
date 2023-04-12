@@ -42,9 +42,7 @@
 #include <ncurses.h>
 #include <curses.h>
 #include <time.h>
-#include <sys/ioctl.h>
-#include <unistd.h> 
-
+#include <iostream>
 
 /*-------------------------------------------------------------------*
 *    GLOBAL VARIABLES AND CONSTANTS                                  *
@@ -55,6 +53,15 @@
 #define BOARD_COLS size.ws_col - 10
 #define ON '0'
 #define OFF ' '
+
+#if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#define VC_EXTRALEAN
+#include <Windows.h>
+#elif defined(__linux__)
+#include <sys/ioctl.h>
+#endif
+
 
 /* Global structures */
 struct cell{
@@ -74,14 +81,29 @@ int read_file_to_board(struct cell board[BOARD_ROWS][BOARD_COLS],FILE *fp);
 int print_current_board(struct cell board[BOARD_ROWS][BOARD_COLS],int current_generation);	
 int update_board(struct cell board[BOARD_ROWS][BOARD_COLS]);					    	    
 int update_file(struct cell board[BOARD_ROWS][BOARD_COLS],FILE *fp, int current_generation);						
-int ask_for_user_input(int *ptr_input);																										
+int ask_for_user_input(int *ptr_input);
+void get_terminal_size(int& width, int& height);
 
 
+void get_terminal_size(int& width, int& height) {
+#if defined(_WIN32)
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+    width = (int)(csbi.srWindow.Right-csbi.srWindow.Left+1);
+    height = (int)(csbi.srWindow.Bottom-csbi.srWindow.Top+1);
+#elif defined(__linux__)
+    struct winsize w;
+    ioctl(fileno(stdout), TIOCGWINSZ, &w);
+    width = (int)(w.ws_col);
+    height = (int)(w.ws_row);
+#endif // Windows/Linux
+}
 
 
 /*********************************************************************
 *    MAIN PROGRAM                                                      *
 **********************************************************************/
+using namespace std;
 int main(void){
 ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
 FILE *fp;
@@ -89,6 +111,12 @@ struct cell board[BOARD_ROWS][BOARD_COLS] = {0,0};
 int current_generation, neighbour_count,delay = 0;
 int *ptr_input = &delay;
 int i,j;
+int width=0, height=0;
+
+get_terminal_size(width, height);
+cout << "width=" << width << ", height=" << height << endl;
+cin.get();
+
 
 
 initscr();
@@ -333,4 +361,23 @@ for(int i=1; i < BOARD_ROWS-1; i++){								// print current board
 
 refresh();
 return 0;
+}
+
+
+/*********************************************************************
+ NAME: get_terminal_size
+ DESCRIPTION: get terminal size
+*********************************************************************/
+void get_terminal_size(int& width, int& height) {
+#if defined(_WIN32)
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+    width = (int)(csbi.srWindow.Right-csbi.srWindow.Left+1);
+    height = (int)(csbi.srWindow.Bottom-csbi.srWindow.Top+1);
+#elif defined(__linux__)
+    struct winsize w;
+    ioctl(fileno(stdout), TIOCGWINSZ, &w);
+    width = (int)(w.ws_col);
+    height = (int)(w.ws_row);
+#endif 
 }
