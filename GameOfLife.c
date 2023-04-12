@@ -42,14 +42,17 @@
 #include <ncurses.h>
 #include <curses.h>
 #include <time.h>
+#include <sys/ioctl.h>
+#include <unistd.h> 
+
 
 /*-------------------------------------------------------------------*
 *    GLOBAL VARIABLES AND CONSTANTS                                  *
 *--------------------------------------------------------------------*/
 /* Global constants */
 #define GENERATIONS 10000  
-#define BOARD_ROWS 62
-#define BOARD_COLS 120
+#define BOARD_ROWS size.ws_row - 10
+#define BOARD_COLS size.ws_col - 10
 #define ON '0'
 #define OFF ' '
 
@@ -58,6 +61,8 @@ struct cell{
 	char current;
 	char future;
 };
+struct winsize size;
+
 
 
 /*-------------------------------------------------------------------*
@@ -78,6 +83,7 @@ int ask_for_user_input(int *ptr_input);
 *    MAIN PROGRAM                                                      *
 **********************************************************************/
 int main(void){
+ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
 FILE *fp;
 struct cell board[BOARD_ROWS][BOARD_COLS] = {0,0};	
 int current_generation, neighbour_count,delay = 0;
@@ -87,7 +93,6 @@ int i,j;
 
 initscr();
 scrollok(stdscr, TRUE);
-
 
 
 initialize_file(fp);																		// initialize file to all OFF then randomize
