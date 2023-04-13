@@ -40,36 +40,23 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ncurses.h>
-#include <curses.h>
 #include <time.h>
-#include <iostream>
 
 /*-------------------------------------------------------------------*
 *    GLOBAL VARIABLES AND CONSTANTS                                  *
 *--------------------------------------------------------------------*/
 /* Global constants */
 #define GENERATIONS 10000  
-#define BOARD_ROWS size.ws_row - 10
-#define BOARD_COLS size.ws_col - 10
+#define BOARD_ROWS 25
+#define BOARD_COLS 50
 #define ON '0'
 #define OFF ' '
-
-#if defined(_WIN32)
-#define WIN32_LEAN_AND_MEAN
-#define VC_EXTRALEAN
-#include <Windows.h>
-#elif defined(__linux__)
-#include <sys/ioctl.h>
-#endif
-
 
 /* Global structures */
 struct cell{
 	char current;
 	char future;
 };
-struct winsize size;
-
 
 
 /*-------------------------------------------------------------------*
@@ -81,46 +68,23 @@ int read_file_to_board(struct cell board[BOARD_ROWS][BOARD_COLS],FILE *fp);
 int print_current_board(struct cell board[BOARD_ROWS][BOARD_COLS],int current_generation);	
 int update_board(struct cell board[BOARD_ROWS][BOARD_COLS]);					    	    
 int update_file(struct cell board[BOARD_ROWS][BOARD_COLS],FILE *fp, int current_generation);						
-int ask_for_user_input(int *ptr_input);
-void get_terminal_size(int& width, int& height);
+int ask_for_user_input(int *ptr_input);																										
 
 
-void get_terminal_size(int& width, int& height) {
-#if defined(_WIN32)
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-    width = (int)(csbi.srWindow.Right-csbi.srWindow.Left+1);
-    height = (int)(csbi.srWindow.Bottom-csbi.srWindow.Top+1);
-#elif defined(__linux__)
-    struct winsize w;
-    ioctl(fileno(stdout), TIOCGWINSZ, &w);
-    width = (int)(w.ws_col);
-    height = (int)(w.ws_row);
-#endif // Windows/Linux
-}
 
 
 /*********************************************************************
 *    MAIN PROGRAM                                                      *
 **********************************************************************/
-using namespace std;
 int main(void){
-ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
 FILE *fp;
 struct cell board[BOARD_ROWS][BOARD_COLS] = {0,0};	
-int current_generation, neighbour_count,delay = 0;
+int current_generation = 0, neighbour_count = 0, delay = 0;
 int *ptr_input = &delay;
 int i,j;
-int width=0, height=0;
-
-get_terminal_size(width, height);
-cout << "width=" << width << ", height=" << height << endl;
-cin.get();
-
 
 
 initscr();
-scrollok(stdscr, TRUE);
 
 
 initialize_file(fp);																		// initialize file to all OFF then randomize
@@ -140,9 +104,13 @@ start_color();
 init_pair(1, COLOR_WHITE, COLOR_BLUE);
 bkgdset(COLOR_PAIR(1));
 
+
+
 while (current_generation < GENERATIONS){
 read_file_to_board(board,fp);																// read file to current board
+
 print_current_board(board,current_generation);												// print current board to screen
+
 
 
 for(i=1; i < BOARD_ROWS-1; i++){
@@ -186,6 +154,7 @@ for(i=1; i < BOARD_ROWS-1; i++){
 }
 
 update_board(board);																		// update current board to what future board was
+
 update_file(board,fp,current_generation);													// update file to what current board is	
 
 napms(delay);
@@ -227,8 +196,8 @@ return 0;
 
 
 /*********************************************************************
- NAME: ask_for_user_input
- DESCRIPTION: Asks user for input
+ NAME: randomize_file
+ DESCRIPTION: randomizes file
 	Input: FILE *fp
 	Output: FILE *fp
 *********************************************************************/
@@ -262,7 +231,6 @@ return 0;
 int read_file_to_board(struct cell board[BOARD_ROWS][BOARD_COLS],FILE *fp){				
 char state, lineend; 
 int column,row;
-column=0; row=0;
 												
 fp = fopen("board.txt", "r");											
 if(fp == NULL){
@@ -326,15 +294,16 @@ return 0;
 *********************************************************************/
 
 int ask_for_user_input(int *ptr_input){
-int speed;
+int speed = 0, check = 0;
 printw("Enter speed 0-100: ");
-scanw("%d", &speed);
+check = scanw("%d", &speed);
 refresh();
-if(speed>0 && speed<100){
+if((speed>0 && speed<=100) && check == 1){
 	speed = ((speed * (-1)) + 150);
 	*ptr_input = speed;
 }
 else{
+	erase();
 	printw("Invalid speed, try again\n");
 	ask_for_user_input(ptr_input);
 	refresh();
@@ -350,9 +319,10 @@ return 0;
 	Output: struct cell board[BOARD_ROWS][BOARD_COLS], int current_generation
 *********************************************************************/
 int print_current_board(struct cell board[BOARD_ROWS][BOARD_COLS], int current_generation){
-printw("\n     GEN: %d\n", current_generation);
-for(int i=1; i < BOARD_ROWS-1; i++){								// print current board
-	for(int j=1; j < BOARD_COLS-1; j++){
+erase();
+printw("GEN: %d\n", current_generation);
+for(int i=0; i < BOARD_ROWS; i++){								// print current board
+	for(int j=0; j < BOARD_COLS; j++){
 		printw("%c ", board[i][j].current);						
   	}
 	printw("\n");
@@ -361,23 +331,4 @@ for(int i=1; i < BOARD_ROWS-1; i++){								// print current board
 
 refresh();
 return 0;
-}
-
-
-/*********************************************************************
- NAME: get_terminal_size
- DESCRIPTION: get terminal size
-*********************************************************************/
-void get_terminal_size(int& width, int& height) {
-#if defined(_WIN32)
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-    width = (int)(csbi.srWindow.Right-csbi.srWindow.Left+1);
-    height = (int)(csbi.srWindow.Bottom-csbi.srWindow.Top+1);
-#elif defined(__linux__)
-    struct winsize w;
-    ioctl(fileno(stdout), TIOCGWINSZ, &w);
-    width = (int)(w.ws_col);
-    height = (int)(w.ws_row);
-#endif 
 }
