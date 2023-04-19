@@ -41,7 +41,6 @@ int current_generation = 0;
 int i,j;
 
 
-
 InitWindow(screen_width, screen_height, "Game Of Life");
 SetTargetFPS(45);
 
@@ -58,7 +57,7 @@ determine_next_gen(board);
 
 BeginDrawing();
 ClearBackground(DARKGRAY);
-	for (int i = 0; i < BOARD_ROWS ; i++) {										//draw board
+	for (int i = 0; i < BOARD_ROWS ; i++) {												//draw board
 		for (int j = 0; j < BOARD_COLS ; j++) {
 			Rectangle rec = { i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE };
     		if (board[i][j].current == ON)												
@@ -71,7 +70,7 @@ EndDrawing();
 
 
 
-for(i=0; i < BOARD_ROWS; i++){														// update current board
+for(i=0; i < BOARD_ROWS; i++){															// update current board
 	for(j=0; j < BOARD_COLS; j++){
 		board[i][j].current = board[i][j].future;
   	}
