@@ -2,7 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <stdbool.h>
 #include "raylib.h"
+#include "menu.c"
+
+
 
 #define GENERATIONS 1000
 #define BOARD_ROWS 100
@@ -22,6 +26,7 @@ struct cell{
 /*-------------------------------------------------------------------*
 *    FUNCTION PROTOTYPES                                             *
 *--------------------------------------------------------------------*/
+int menu(void);
 int determine_next_gen(struct cell board[BOARD_ROWS][BOARD_COLS]);
 int initialize_board(struct cell board[BOARD_ROWS][BOARD_COLS]);
 int read_file_to_board(struct cell board[BOARD_ROWS][BOARD_COLS],FILE *fp);
@@ -40,12 +45,20 @@ int screen_height = (BOARD_ROWS - 1) * CELL_SIZE;
 int current_generation = 0;
 int i,j;
 
+float timesinceframe = 0; 
+float timer = 0;
+
+bool restart = false;
+
+
 
 InitWindow(screen_width, screen_height, "Game Of Life");
-SetTargetFPS(35);
+SetTargetFPS(30);
 
-InitAudioDevice();         
-Music music = LoadMusicStream("resources/metal.mp3");		// Load music stream and play it
+if (menu() == true) CloseWindow();
+  
+
+Music music = LoadMusicStream("resources/doom.mp3");		// Load music stream and play it
 PlayMusicStream(music);
 
 
@@ -56,14 +69,31 @@ randomize_file(fp);
 read_file_to_board(board,fp);
 
 
+
+while(timer < 5.0){ 
+	timesinceframe = GetFrameTime();
+	timer += timesinceframe;
+	UpdateMusicStream(music);
+}
+
 while (!WindowShouldClose()){
-UpdateMusicStream(music);
+
+if (restart==true){
+    initialize_board(board);
+    randomize_file(fp);
+	read_file_to_board(board,fp);
+	StopMusicStream(music);
+	PlayMusicStream(music);
+	restart = false;
+}
 determine_next_gen(board);
 
 
+
 BeginDrawing();
-ClearBackground(PINK);
-	for (int i = 0; i < BOARD_ROWS ; i++) {												//draw board
+UpdateMusicStream(music);
+	ClearBackground(PINK);
+	for (int i = 0; i < BOARD_ROWS ; i++) {												
 		for (int j = 0; j < BOARD_COLS ; j++) {
 			Rectangle rec = { i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE };
     		if (board[i][j].current == ON)												
@@ -71,8 +101,12 @@ ClearBackground(PINK);
 				DrawRectangleLinesEx(rec, (float)0.5, GRAY);    
 	}
 DrawText(TextFormat("GEN %i",current_generation), 1, 1, 30, BLACK);
+
+restart = GuiButton((Rectangle){150,1,100,30}, "Restart");
+
 }
 EndDrawing();
+
 
 
 
@@ -86,6 +120,9 @@ current_generation++;
 
 }
 
+UnloadMusicStream(music); 
+CloseAudioDevice();
+CloseWindow();
 return 0;
 } /* END OF MAIN */
 
