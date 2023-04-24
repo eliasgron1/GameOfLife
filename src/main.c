@@ -76,6 +76,7 @@ if (restart==true){
 	read_file_to_board(board,fp);
 	StopMusicStream(music);
 	PlayMusicStream(music);
+	current_generation=0;
 	restart = false;
 }
 determine_next_gen(board);
