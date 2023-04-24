@@ -42,12 +42,12 @@ FILE *fp;
 struct cell board[BOARD_ROWS][BOARD_COLS] = {0,0};
 int screen_width = (BOARD_COLS - 1) * CELL_SIZE;
 int screen_height = (BOARD_ROWS - 1) * CELL_SIZE;
-int current_generation = 0;
+int current_generation = 0, frame_counter = 0;
 int i,j;
 
 
 bool restart = false;
-
+bool start = true;
 
 
 InitWindow(screen_width, screen_height, "Game Of Life");
@@ -69,13 +69,18 @@ read_file_to_board(board,fp);
 
 
 while (!WindowShouldClose()){
+UpdateMusicStream(music);
 
 if (restart==true){
     initialize_board(board);
     randomize_file(fp);
 	read_file_to_board(board,fp);
-	StopMusicStream(music);
-	PlayMusicStream(music);
+
+	if(start == false){
+		StopMusicStream(music);
+		PlayMusicStream(music);
+	}
+
 	current_generation=0;
 	restart = false;
 }
@@ -84,18 +89,24 @@ determine_next_gen(board);
 
 
 BeginDrawing();
-UpdateMusicStream(music);
-	if (current_generation < 30) DrawTexture(explosion, 10, 10, WHITE);
+
+	if (frame_counter < 272){
+		DrawTexture(explosion, 300, 300, WHITE);
+		DrawTexture(explosion, 10, 10, WHITE);
+		restart=true,start=true, frame_counter++;
+	}
+
 	else{
-	ClearBackground(PINK);
+	start = false;
+	ClearBackground(DARKPURPLE);
 	for (int i = 0; i < BOARD_ROWS ; i++) {												
 		for (int j = 0; j < BOARD_COLS ; j++) {
 			Rectangle rec = { i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE };
     		if (board[i][j].current == ON)												
-    			DrawRectangle(i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE, WHITE);
-				DrawRectangleLinesEx(rec, (float)0.5, GRAY);    
+    			DrawRectangle(i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE, RAYWHITE);
+				DrawRectangleLinesEx(rec, (float)0.5, DARKGRAY);    
 	}
-DrawText(TextFormat("GEN %i",current_generation), 1, 1, 30, BLACK);
+DrawText(TextFormat("GEN %i",current_generation), 1, 1, 30, RAYWHITE);
 
 restart = GuiButton((Rectangle){150,1,100,30}, "Restart");
 
