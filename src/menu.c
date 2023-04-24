@@ -14,7 +14,7 @@ InitAudioDevice();
 
 Texture2D explosion = LoadTexture("resources/explosion.png");
 Sound boom = LoadSound("resources/boom.mp3");
-Music music = LoadMusicStream("resources/menu.mp3");		
+Music music = LoadMusicStream("resources/pou.mp3");		
 
 GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
 PlayMusicStream(music);

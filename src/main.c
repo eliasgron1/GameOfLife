@@ -45,8 +45,6 @@ int screen_height = (BOARD_ROWS - 1) * CELL_SIZE;
 int current_generation = 0;
 int i,j;
 
-float timesinceframe = 0; 
-float timer = 0;
 
 bool restart = false;
 
@@ -57,7 +55,7 @@ SetTargetFPS(30);
 
 if (menu() == true) CloseWindow();
   
-
+Texture2D explosion = LoadTexture("resources/explosion.png");
 Music music = LoadMusicStream("resources/doom.mp3");		// Load music stream and play it
 PlayMusicStream(music);
 
@@ -69,12 +67,6 @@ randomize_file(fp);
 read_file_to_board(board,fp);
 
 
-
-while(timer < 5.0){ 
-	timesinceframe = GetFrameTime();
-	timer += timesinceframe;
-	UpdateMusicStream(music);
-}
 
 while (!WindowShouldClose()){
 
@@ -92,6 +84,8 @@ determine_next_gen(board);
 
 BeginDrawing();
 UpdateMusicStream(music);
+	if (current_generation < 30) DrawTexture(explosion, 10, 10, WHITE);
+	else{
 	ClearBackground(PINK);
 	for (int i = 0; i < BOARD_ROWS ; i++) {												
 		for (int j = 0; j < BOARD_COLS ; j++) {
@@ -104,6 +98,7 @@ DrawText(TextFormat("GEN %i",current_generation), 1, 1, 30, BLACK);
 
 restart = GuiButton((Rectangle){150,1,100,30}, "Restart");
 
+	}
 }
 EndDrawing();
 
