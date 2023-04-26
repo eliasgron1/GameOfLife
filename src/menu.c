@@ -45,6 +45,8 @@ UpdateMusicStream(music);
     startgame = GuiButton((Rectangle){(screen_width / 2)-75, (screen_height / 2),150,30}, "Start Game");
     exit = GuiButton((Rectangle){(screen_width / 2)-75, (screen_height / 2) + 40,150,30}, "Quit Game");
     
+    DrawText("By: Elias Grönholm", (screen_width / 2)-180, (screen_height / 2) - 60, 40, BROWN); 
+
     DrawTexture(star, (screen_width / 2)  + 50, (screen_height / 2) + 200, WHITE);
     DrawTexturePro(pingu, sourceRec, destRec, origin, (float)rotation, WHITE);
     DrawTextureEx(start, position_start, 30, 1, WHITE);
@@ -58,7 +60,6 @@ UpdateMusicStream(music);
 if(startgame==true){
 PlaySound(boom);
 }
-
 
 UnloadTexture(star);
 UnloadTexture(start);
